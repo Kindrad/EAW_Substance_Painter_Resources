@@ -2,7 +2,7 @@
  Templates and shaders for easier Substance Painter to EAW workflow
 
 
-#How to install temaples and shaders
+# How to install temaples and shaders
 Copy files into susbtance asset directoy
 
 or
