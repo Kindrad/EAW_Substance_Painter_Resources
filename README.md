@@ -3,7 +3,7 @@
 
 
 # How to install temaples and shaders
-Copy files into susbtance asset directoy
+Copy /assets/ files into susbtance user/documents/adobe/Susbtance Painer/assets directory
 
 or
 
