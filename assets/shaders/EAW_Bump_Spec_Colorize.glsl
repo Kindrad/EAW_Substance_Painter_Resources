@@ -8,11 +8,13 @@ import lib-utils.glsl
 import lib-defines.glsl
 
 
+
+
 //: param auto channel_basecolor
 uniform SamplerSparse basecolor_tex;
 
-//: param auto channel_specularlevel 
-uniform SamplerSparse specularlevel_tex;
+//: param auto channel_specular 
+uniform SamplerSparse specularcolor_tex;
 
 //: param auto channel_blendingmask  
 uniform SamplerSparse blendingmask_tex;
@@ -21,10 +23,25 @@ uniform SamplerSparse blendingmask_tex;
 uniform float uniform_environment_rotation;
 
 
+//: param auto main_light
+uniform vec4 light_main;
+
+
+
 //: param custom {
-//:  "default": 0.2,
+//:  "default": 10.0,
 //:   "min": 0.0,
-//:   "max": 1.0,
+//:   "max": 30.0,
+//:   "label": "Light Strength"
+//: }
+uniform float u_brightness;
+
+
+
+//: param custom {
+//:  "default": 0.3,
+//:   "min": 0.0,
+//:   "max": 30.0,
 //:   "label": "Dark brightness"
 //: }
 uniform float u_dark_bright;
@@ -38,7 +55,7 @@ uniform bool u_show_team;
 
 //: param custom
 //: {
-//:    "default": 0,
+//:    "default": [1.0, 0.5, 0.0],
 //:    "label": "Team Color",
 //:    "widget": "color",
 //:    "visible": "input.u_show_team" 
@@ -51,42 +68,30 @@ void shade(V2F inputs)
 
     vec4 oneVec = vec4(1.0,1.0,1.0,1.0);
 
-    float y_rot = -uniform_environment_rotation * 2 * M_PI;
-    
-    vec3 light_pos = vec3(cos(y_rot) * 10000.0, 10000.0, sin(y_rot) * 10000.0);
-
-
     LocalVectors vectors = computeLocalFrame(inputs);
 
-    vec3 V = normalize(vectors.eye);
-    vec3 N = normalize(vectors.normal);
-    vec3 L = normalize(light_pos - inputs.position);
-    vec3 HV = normalize(V + L);
-
-    float NdV = dot(N, V);
-    float NdL = clamp(dot(N, L), 0.0, 1.0);
-    float NdH = clamp(dot(N,HV), 0.0, 1.0);
+    float NdotL = max(0.0, dot(vectors.normal, light_main.xyz));
+    float NdotV = clamp(dot(vectors.normal, vectors.eye), 0.0, 1.0);
+    float NdotH = max(0.0, dot(vectors.normal, normalize(light_main.xyz + vectors.eye)));
 
     ////albedo
     vec3 albedo =  getBaseColor(basecolor_tex, inputs.sparse_coord);
 
     if(u_show_team)
     {
-
         float blend_mask = textureSparse(blendingmask_tex, inputs.sparse_coord).r;
-
         albedo = mix(albedo, u_team_color, blend_mask);
     }
+
     
     //diffuse lighting value
-    vec3 diffuse = oneVec.rgb * clamp(NdL * 2.0, u_dark_bright, 1.0);
+    vec3 diffuse = oneVec.rgb * clamp(NdotL * 2.0, u_dark_bright, u_brightness);
 
 
     ////specular lighting value
-    vec3 specular = oneVec.rgb * getSpecularLevel(specularlevel_tex, inputs.sparse_coord) * pow(NdH, 16);
+    vec3 specular = getSpecularColor(specularcolor_tex, inputs.sparse_coord).rgb * pow(NdotH, 16) * u_brightness;
 
     //recall lighting = albedo * diffuse + specular
-
 
     //output channels
     albedoOutput(albedo);
