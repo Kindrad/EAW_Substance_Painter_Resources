@@ -7,7 +7,7 @@ Copy /assets/ files into susbtance user/documents/adobe/Susbtance Painer/assets 
 
 or
 
-Download into folder and add newly created folder to resource directory in Substance Painter settings
+Download /assets/ into storage folder then add the newly created folder to resource directory in Substance Painter settings
 
 
 # Changing Shader Parameters
