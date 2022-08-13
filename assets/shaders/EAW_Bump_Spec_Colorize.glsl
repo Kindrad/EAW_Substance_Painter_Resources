@@ -10,8 +10,9 @@ import lib-defines.glsl
 
 
 
-//: param auto channel_basecolor
-uniform SamplerSparse basecolor_tex;
+
+//: param auto channel_diffuse
+uniform SamplerSparse diffuse_tex;
 
 //: param auto channel_specular 
 uniform SamplerSparse specularcolor_tex;
@@ -74,27 +75,25 @@ void shade(V2F inputs)
     float NdotV = clamp(dot(vectors.normal, vectors.eye), 0.0, 1.0);
     float NdotH = max(0.0, dot(vectors.normal, normalize(light_main.xyz + vectors.eye)));
 
-    ////albedo
-    vec3 albedo =  getBaseColor(basecolor_tex, inputs.sparse_coord);
+    //diffuse
+    vec3 diffuse =  getDiffuse(diffuse_tex, inputs.sparse_coord);
 
     if(u_show_team)
     {
         float blend_mask = textureSparse(blendingmask_tex, inputs.sparse_coord).r;
-        albedo = mix(albedo, u_team_color, blend_mask);
+        diffuse = mix(diffuse, diffuse * u_team_color, blend_mask);
     }
 
     
-    //diffuse lighting value
-    vec3 diffuse = oneVec.rgb * clamp(NdotL * 2.0, u_dark_bright, u_brightness);
+    //add lighting to diffuse
+    diffuse *= clamp(NdotL * 2.0, u_dark_bright, u_brightness);
 
 
     ////specular lighting value
     vec3 specular = getSpecularColor(specularcolor_tex, inputs.sparse_coord).rgb * pow(NdotH, 16) * u_brightness;
 
-    //recall lighting = albedo * diffuse + specular
 
     //output channels
-    albedoOutput(albedo);
     diffuseShadingOutput(diffuse);
     specularShadingOutput(specular);
 
