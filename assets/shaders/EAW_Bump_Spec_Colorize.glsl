@@ -20,9 +20,14 @@ uniform SamplerSparse specularcolor_tex;
 //: param auto channel_blendingmask  
 uniform SamplerSparse blendingmask_tex;
 
+//: param auto channel_emissive
+uniform SamplerSparse emissive_tex;
+
+
+
+
 //: param auto environment_rotation
 uniform float uniform_environment_rotation;
-
 
 //: param auto main_light
 uniform vec4 light_main;
@@ -47,6 +52,11 @@ uniform float u_brightness;
 //: }
 uniform float u_dark_bright;
 
+//: param custom {
+//:  "default": true,
+//:   "label": "Emissive Toggle"
+//: }
+uniform bool u_emissive_toggle;
 
 //: param custom {
 //:  "default": false,
@@ -78,6 +88,8 @@ void shade(V2F inputs)
     //diffuse
     vec3 diffuse =  getDiffuse(diffuse_tex, inputs.sparse_coord);
 
+
+    //team colors
     if(u_show_team)
     {
         float blend_mask = textureSparse(blendingmask_tex, inputs.sparse_coord).r;
@@ -93,8 +105,17 @@ void shade(V2F inputs)
     vec3 specular = getSpecularColor(specularcolor_tex, inputs.sparse_coord).rgb * pow(NdotH, 16) * u_brightness;
 
 
+    //emissive
+    vec3 emissive = vec3(0.0,0.0,0.0);
+    if(u_emissive_toggle)
+    {
+        emissive = textureSparse(emissive_tex, inputs.sparse_coord).rgb;
+    }
+
+
     //output channels
     diffuseShadingOutput(diffuse);
     specularShadingOutput(specular);
+    emissiveColorOutput(emissive);
 
 }
